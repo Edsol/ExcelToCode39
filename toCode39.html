@@ -1,0 +1,122 @@
+<html>
+    <head>
+        <style>
+            #drop{
+                border:2px dashed #bbb;
+                -moz-border-radius:5px;
+                -webkit-border-radius:5px;
+                border-radius:5px;
+                padding:25px;
+                text-align:center;
+                font:20pt bold,"Vollkorn";color:#bbb
+            }
+            #desc{
+                text-align:center;
+            }
+            </style>
+        <script src="xlsx.full.min.js"></script>
+        <script type="text/javascript" src="code39.js"></script>
+    </head>
+    <body align="center"> 
+       <div id="drop">TRASCINA QUI IL FOGLIO EXCEL</div>
+        <div id="externalbox" style="width:5in">
+            <table width="400px" id="restable">
+                <tr>
+                    <td><div id="0"></div></td>
+                </tr>
+                <tr>
+                    <td><div id="0desc"></div></td>
+                </tr>
+            </table>
+        </div>
+
+<script>
+    var drop = document.getElementById('drop');
+    
+        /* set up drag-and-drop event */
+        function handleDrop(e){
+            
+            e.stopPropagation();
+            e.preventDefault();
+            var files = e.dataTransfer.files;
+            var i,f;
+            for (i = 0, f = files[i]; i != files.length; ++i) {
+                var reader = new FileReader();
+                var name = f.name;
+                reader.onload = function(e) {
+                var data = e.target.result;
+
+                /* if binary string, read with type 'binary' */
+                var workbook = XLSX.read(data, {type: 'binary'});
+
+                    /* Get worksheet */
+                    var worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var rowcount=1;
+                    do{
+                        /* Find desired cell */
+                        var val = worksheet['A'+rowcount];
+                        var des = worksheet['B'+rowcount];
+
+                        /* Get the value */
+                        var val_v = val.v;
+                        var des_v = des.v;
+                        insert(val_v,des_v,rowcount);
+                        rowcount++;
+                    }while(des_v!="")
+                    //run print operation
+                    //window.print();
+                };
+                reader.readAsBinaryString(f);
+            }
+        }
+
+        function insert(cod,des,count){
+            //nasconde la DIV per il drag&drop
+            document.getElementById('drop').style.display = 'none';
+            if(count==1){
+                document.getElementById('0').innerHTML = cod;
+                //get_object("inputdata").innerHTML=DrawCode39Barcode(get_object("inputdata").innerHTML,0);
+            
+                //DrawHTMLBarcode_Code39(data,checkDigit,humanReadable,units,minBarWidth,width,height,barWidthRatio,textLocation,textAlignment,textStyle,foreColor,backColor)
+                get_object("0").innerHTML=DrawHTMLBarcode_Code39(get_object("0").innerHTML,0,"yes","in", 0,3.1,0.7,3,"bottom","center", "","black","white"); ;
+                //inserisce la descrizione
+                document.getElementById('0desc').innerHTML = "<div align='center'>"+des+"</div>";
+            }else{
+                var table = document.getElementById("restable");
+                var row = table.insertRow(-1);
+                count--;
+                row.innerHTML = "<div align='center' id="+count+">"+cod+"</div>";
+                get_object(count).innerHTML=DrawHTMLBarcode_Code39(get_object(count).innerHTML,0,"yes","in", 0,3.1,0.7,3,"bottom","center", "","black","white"); ;
+                var row1 = table.insertRow(-1);
+                row1.innerHTML = "<div align='center' id="+count+"desc>"+des+"</div>";
+            }      
+        }
+
+
+        
+        function handleDragover(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        if(drop.addEventListener) {
+            drop.addEventListener('dragenter', handleDragover, false);
+            drop.addEventListener('dragover', handleDragover, false);
+            drop.addEventListener('drop', handleDrop, false);
+        }
+
+        function get_object(id) {
+            var object = null;
+            if (document.layers) {
+                object = document.layers[id];
+            } else if (document.all) {
+                object = document.all[id];
+            } else if (document.getElementById) {
+                object = document.getElementById(id);
+            }
+            return object;
+        }
+</script>
+</body>
+</html>
